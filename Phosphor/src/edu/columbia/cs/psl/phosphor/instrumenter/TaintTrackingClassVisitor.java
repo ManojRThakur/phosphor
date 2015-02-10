@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import edu.columbia.cs.psl.phosphor.Instrumenter;
+import edu.columbia.cs.psl.phosphor.MethodDescriptor;
+import edu.columbia.cs.psl.phosphor.SelectiveInstrumentationManager;
 import edu.columbia.cs.psl.phosphor.TaintUtils;
 import edu.columbia.cs.psl.phosphor.instrumenter.analyzer.NeverNullArgAnalyzerAdapter;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.ClassVisitor;
@@ -132,6 +134,10 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	HashMap<MethodNode, MethodNode> forMore = new HashMap<MethodNode, MethodNode>();
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+		if(!className.startsWith("java/") && !className.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, className, desc))){
+			System.out.println("Skipping instrumentation for  class: " + className + " method: " + name + " desc: " + desc);
+			return super.visitMethod(access, name, desc, signature, exceptions);
+		}
 		if (TaintUtils.DEBUG_CALLS || TaintUtils.DEBUG_FIELDS || TaintUtils.DEBUG_FRAMES || TaintUtils.DEBUG_LOCAL)
 			System.out.println("Instrumenting " + name + "\n\n\n\n\n\n");
 		if(Instrumenter.IS_KAFFE_INST && className.equals("java/lang/VMSystem"))

@@ -1,6 +1,8 @@
 package edu.columbia.cs.psl.phosphor;
 
 import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
 
 import sun.misc.VM;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Opcodes;
@@ -89,7 +91,64 @@ public class TaintUtils {
 
 	public static final boolean VERIFY_CLASS_GENERATION = false;
 
+	/*
+	 * Start: Conversion of method signature from doop format to bytecode format
+	 */
+	
+	private static Map<String, String> typeToSymbol = new HashMap<String, String>();
+	
+	static {
+		typeToSymbol.put("byte", "B");
+		typeToSymbol.put("char", "C");
+		typeToSymbol.put("double", "D");
+		typeToSymbol.put("float", "F");
+		typeToSymbol.put("int", "I");
+		typeToSymbol.put("long", "J");
+		typeToSymbol.put("short", "S");
+		typeToSymbol.put("void", "V");
+		typeToSymbol.put("boolean", "Z");
+	}	
 
+	private static String processType(String type) {
+		StringBuffer typeBuffer = new StringBuffer();
+		type = type.trim();
+		if(type.indexOf("[]") > 0) {
+			for(int i = 1; i < type.split("\\[").length;i++)
+				typeBuffer.append("[");
+			type = type.split("\\[")[0];
+			typeBuffer.append(typeToSymbol.containsKey(type)?typeToSymbol.get(type): "L"+type.replaceAll("\\.", "/")+";");
+		}
+		else
+			typeBuffer.append(typeToSymbol.containsKey(type)?typeToSymbol.get(type): "L"+type.replaceAll("\\.", "/")+";");
+		return typeBuffer.toString();
+	}
+	
+	//<java.lang.Runtime: java.lang.Process[][][] exec(java.lang.String,java.lang.String[],java.io.File)>
+	public static MethodDescriptor getMethodDesc(String signature) {
+		// get return type
+		String temp = signature.split(": ")[1].trim();
+		String owner = signature.split(": ")[0].trim().substring(1).replace(".", "/");
+		String name = temp.split("\\(")[0].split(" ")[1];
+		
+		String returnTypeSymbol = processType(temp.substring(0, temp.indexOf(" ")).trim());
+		 
+		// get args list
+		temp = signature.substring(signature.indexOf("(")+1, signature.indexOf(")"));
+		StringBuffer argsBuffer = new StringBuffer();
+	
+		argsBuffer.append("(");
+		for(String arg : temp.split(",")) 
+			argsBuffer.append(processType(arg.trim()));
+		argsBuffer.append(")");
+	
+		argsBuffer.append(returnTypeSymbol);
+		return new MethodDescriptor(name, owner, argsBuffer.toString());
+	}
+	
+	/*
+	 * End: Conversion of method signature from doop format to bytecode format
+	 */
+	
 	public static boolean isPreAllocReturnType(String methodDescriptor)
 	{
 		Type retType = Type.getReturnType(methodDescriptor);

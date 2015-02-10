@@ -424,6 +424,8 @@ public class Instrumenter {
 			 System.err.println("Usage: java -jar phosphor.jar [source] [dest] {additional-classpath-entries}");
 			 return;
 		}
+		System.out.println("Loading selective instrumentation configuration");
+		SelectiveInstrumentationManager.populateMethodsToInstrument(System.getProperty("user.dir")+"/methods");
 		TaintTrackingClassVisitor.IS_RUNTIME_INST = false;
 		ANALYZE_ONLY = true;
 		System.out.println("Starting analysis");
@@ -963,6 +965,10 @@ public class Instrumenter {
 	}
 
 	public static boolean isIgnoredMethod(String owner, String name, String desc) {
+		if(!owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
+			System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
+			return true;
+		}
 		if (name.equals("wait") && desc.equals("(J)V"))
 			return true;
 		if (name.equals("wait") && desc.equals("(JI)V"))
