@@ -3,9 +3,12 @@ package edu.columbia.cs.psl.phosphor.runtime;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.WeakHashMap;
 
 import sun.reflect.ReflectionFactory;
+import edu.columbia.cs.psl.phosphor.MethodDescriptor;
+import edu.columbia.cs.psl.phosphor.SelectiveInstrumentationManager;
 import edu.columbia.cs.psl.phosphor.TaintUtils;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Type;
 import edu.columbia.cs.psl.phosphor.struct.ArrayList;
@@ -37,12 +40,27 @@ public class ReflectionMasker {
 		System.setSecurityManager(null);
 	}
 //	static WeakHashMap<Method, Method> methodCache = new WeakHashMap<Method, Method>();
-
+	static boolean isSelectiveInstManagerInit = false;
+	
 	public static final boolean IS_KAFFE = false;
 	@SuppressWarnings("rawtypes")
 	public static Method getTaintMethod(Method m) {
 //		if (m.INVIVO_PC_TAINTmarked)
 //			return m;
+		String name = m.getName();
+		String owner = Type.getInternalName(m.getDeclaringClass());
+		String desc = Type.getMethodDescriptor(m);
+		
+		if(!name.equals("premain") && !owner.startsWith("java/") && !owner.startsWith("edu/columbia/")) {
+			if(!isSelectiveInstManagerInit) {
+				System.out.println("Loading selective instrumentation configuration");
+				SelectiveInstrumentationManager.populateMethodsToInstrument(System.getProperty("user.dir")+"/methods");
+				isSelectiveInstManagerInit = true;
+			}
+			if(!SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc)))
+				return m;
+		}
+		
 		if(m.getDeclaringClass().isAnnotation())
 			return m;
 		final char[] chars = m.getName().toCharArray();
