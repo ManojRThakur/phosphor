@@ -137,8 +137,10 @@ public class TaintUtils {
 		StringBuffer argsBuffer = new StringBuffer();
 	
 		argsBuffer.append("(");
-		for(String arg : temp.split(",")) 
-			argsBuffer.append(processType(arg.trim()));
+		if(temp != null && !temp.isEmpty()) {
+			for(String arg : temp.split(",")) 
+				argsBuffer.append(processType(arg.trim()));
+		}
 		argsBuffer.append(")");
 	
 		argsBuffer.append(returnTypeSymbol);
