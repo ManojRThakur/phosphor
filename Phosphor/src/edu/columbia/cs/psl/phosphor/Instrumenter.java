@@ -965,7 +965,7 @@ public class Instrumenter {
 	}
 
 	public static boolean isIgnoredMethod(String owner, String name, String desc) {
-		if(!name.equals("<init>") && !owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
+		if(!owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
 			System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 			return true;
 		}
