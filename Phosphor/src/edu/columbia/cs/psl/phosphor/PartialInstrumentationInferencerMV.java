@@ -1,24 +1,21 @@
 package edu.columbia.cs.psl.phosphor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.MethodVisitor;
+import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Opcodes;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Type;
 
 public class PartialInstrumentationInferencerMV extends MethodVisitor {
 
-	List<FieldDescriptor> multidim_array_fields = new ArrayList<FieldDescriptor>();
 	MethodDescriptor desc;
 	Map<MethodDescriptor, List<MethodDescriptor>> map = new HashMap<MethodDescriptor, List<MethodDescriptor>>();
 	
-	public PartialInstrumentationInferencerMV(int api, MethodDescriptor desc, MethodVisitor next,
-			List<FieldDescriptor> multidim_array_fields, Map<MethodDescriptor, List<MethodDescriptor>> map) {
+	public PartialInstrumentationInferencerMV(int api, MethodDescriptor desc, MethodVisitor next, Map<MethodDescriptor, List<MethodDescriptor>> map) {
 		super(api, next);
 		this.desc = desc;
-		this.multidim_array_fields = multidim_array_fields;
 		this.map = map;
 	}
 	
@@ -39,8 +36,9 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 		if(SelectiveInstrumentationManager.methodsToInstrument.contains(caller) 
 				&& !SelectiveInstrumentationManager.methodsToInstrument.contains(callee)) {
 			for(Type t : argTypes) {
-				if(t.getSort() == Type.ARRAY && t.getDimensions() > 1) {
+				if((t.getSort() == Type.ARRAY && t.getDimensions() > 1) || t.getDescriptor().equals("Ljava/lang/Object;")) {
 					SelectiveInstrumentationManager.methodsToInstrument.add(callee);
+					break;
 				}
 			}
 		}
@@ -64,7 +62,19 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name,
 			String desc) {
+		Type fieldType = Type.getType(desc);
+		
 		FieldDescriptor fdesc = new FieldDescriptor(name, owner, desc);
+		if((opcode == Opcodes.PUTFIELD || opcode == Opcodes.PUTSTATIC) 
+				&& fieldType.getSort() == Type.ARRAY && fieldType.getDimensions() == 1) {
+			// check if field in current class
+			//if(singledim_array_fields.contains(fdesc) || PartialInstrumentationInferencerCV.singledim_array_fields_non_private.contains(fdesc)) {
+				System.out.println("[PTI] adding " + this.desc);
+				//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
+				SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
+			//}
+		}
+
 		// TODO test if the second case works
 		/*
 		 * putfield 
@@ -72,7 +82,7 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 		 * getfield
 		 * getstatic
 		 */
-		if(multidim_array_fields.contains(fdesc) || PartialInstrumentationInferencerCV.multidim_array_fields_non_private.contains(fdesc))  {
+		if(fieldType.getSort() == Type.ARRAY && fieldType.getDimensions() > 1)  {
 			System.out.println("[PTI] adding " + this.desc);
 			//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
 			SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
