@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -57,7 +56,7 @@ public class Instrumenter {
 
 	static int nChanges = 0;
 	static boolean analysisInvalidated = false;
-
+	
 	static void propogateUp(String owner, String name, String desc, MethodInformation toPropogate) {
 		propogateUp(owner, name, desc, toPropogate, new HashSet<String>());
 	}
@@ -372,6 +371,14 @@ public class Instrumenter {
 		nTotal++;
 		try {
 			cr = new ClassReader(is);
+			
+			try{
+				cr.accept(new PartialInstrumentationInferencerCV(), ClassReader.EXPAND_FRAMES);
+			}
+			catch(ClassFormatError ex){
+				ex.printStackTrace();
+			}
+			
 			if (callgraph.containsClass(cr.getClassName()))
 				return;
 			cr.accept(new CallGraphBuildingClassVisitor(new ClassVisitor(Opcodes.ASM5) {
@@ -386,7 +393,6 @@ public class Instrumenter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	static int nTotal = 0;
@@ -408,6 +414,7 @@ public class Instrumenter {
 
 			buffer.flush();
 			PreMain.PCLoggingTransformer transformer = new PreMain.PCLoggingTransformer();
+			
 			byte[] ret = transformer.transform(Instrumenter.loader, path, null, null, buffer.toByteArray());
 			curPath = null;
 			return ret;
@@ -424,17 +431,31 @@ public class Instrumenter {
 			 System.err.println("Usage: java -jar phosphor.jar [source] [dest] {additional-classpath-entries}");
 			 return;
 		}
+		
 		System.out.println("Loading selective instrumentation configuration");
 		SelectiveInstrumentationManager.populateMethodsToInstrument(System.getProperty("user.dir")+"/methods");
 		TaintTrackingClassVisitor.IS_RUNTIME_INST = false;
 		ANALYZE_ONLY = true;
 		System.out.println("Starting analysis");
 //		preAnalysis();
-		_main(args);
+		while(true) {
+			System.out.println("Waiting for convergence..");
+			int size = SelectiveInstrumentationManager.methodsToInstrument.size();
+			_main(args);
+			int size_new = SelectiveInstrumentationManager.methodsToInstrument.size();
+			if(size == size_new)
+				break;
+		}
 		System.out.println("Analysis Completed: Beginning Instrumentation Phase");
 //		finishedAnalysis();
 		ANALYZE_ONLY = false;
 		_main(args);
+		// write out file again
+		StringBuffer buf = new StringBuffer();
+		for(MethodDescriptor desc : SelectiveInstrumentationManager.methodsToInstrument) 
+			buf.append(TaintUtils.getMethodDesc(desc)).append("\n");
+		
+		TaintUtils.writeToFile(new File(rootOutputDir.getAbsolutePath()+"/methods"), buf.toString());
 		System.out.println("Done");
 
 	}
@@ -963,9 +984,9 @@ public class Instrumenter {
 			return true;
 		return false;
 	}
-
+	
 	public static boolean isIgnoredMethod(String owner, String name, String desc) {
-		if(!owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
+		if(!owner.startsWith("sun/") && !owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
 			System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 			return true;
 		}

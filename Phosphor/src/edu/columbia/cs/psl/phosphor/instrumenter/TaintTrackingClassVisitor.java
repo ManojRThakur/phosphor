@@ -134,7 +134,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	HashMap<MethodNode, MethodNode> forMore = new HashMap<MethodNode, MethodNode>();
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		if(!className.startsWith("java/") && !className.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, className, desc))){
+		if(!className.startsWith("sun/") && !className.startsWith("java/") && !className.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, className, desc))){
 			if(name.equals("hashCode") && desc.equals("()I"))
 				generateHashCode = false;
 			if(name.equals("equals") && desc.equals("(Ljava/lang/Object;)Z"))

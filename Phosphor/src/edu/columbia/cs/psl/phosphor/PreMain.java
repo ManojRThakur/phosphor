@@ -108,7 +108,9 @@ public class PreMain {
 			cr = new ClassReader(newClass);
 
 			try{
+			cr.accept(new PartialInstrumentationInferencerCV(), ClassReader.EXPAND_FRAMES);
 			cr.accept(
+					
 //					new CheckClassAdapter(
 							new SerialVersionUIDAdder(new TaintTrackingClassVisitor(cw))
 //							)
@@ -210,11 +212,13 @@ public class PreMain {
 				ClassWriter cw = new HackyClassWriter(cr, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 				
 				try{
+					cr.accept(new PartialInstrumentationInferencerCV(), ClassReader.EXPAND_FRAMES);
 					cr.accept(
-//							new CheckClassAdapter(
-									new SerialVersionUIDAdder(new TaintTrackingClassVisitor(cw))
-//									)
-							, ClassReader.EXPAND_FRAMES);
+									new CheckClassAdapter(
+											new SerialVersionUIDAdder(new TaintTrackingClassVisitor(cw)))
+	//								)
+									, ClassReader.EXPAND_FRAMES);
+					
 				}
 				catch(ClassFormatError ex)
 				{
@@ -284,6 +288,8 @@ public class PreMain {
 			}
 		}
 	}
+	
+	
 
 	public static void premain(String args, Instrumentation inst) {
         instrumentation = inst;
