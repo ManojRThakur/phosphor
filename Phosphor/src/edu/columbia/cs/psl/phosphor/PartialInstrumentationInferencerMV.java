@@ -12,11 +12,13 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 
 	MethodDescriptor desc;
 	Map<MethodDescriptor, List<MethodDescriptor>> map = new HashMap<MethodDescriptor, List<MethodDescriptor>>();
+	List<String> superClass;
 	
-	public PartialInstrumentationInferencerMV(int api, MethodDescriptor desc, MethodVisitor next, Map<MethodDescriptor, List<MethodDescriptor>> map) {
+	public PartialInstrumentationInferencerMV(int api, MethodDescriptor desc, MethodVisitor next, Map<MethodDescriptor, List<MethodDescriptor>> map, List<String> superClass) {
 		super(api, next);
 		this.desc = desc;
 		this.map = map;
+		this.superClass = superClass;
 	}
 	
 	@Override
@@ -26,6 +28,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 			System.out.println("[PTI] adding " + this.desc);
 			//AdditionalMethodsToTaint.methodsWithGetAsSrtream.add(this.desc);
 			SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
+			for(String spr : superClass)
+				SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
 		}
 		MethodDescriptor caller = this.desc;
 		MethodDescriptor callee = new MethodDescriptor(name, owner, desc);
@@ -38,6 +42,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 			for(Type t : argTypes) {
 				if((t.getSort() == Type.ARRAY && t.getDimensions() > 1) || t.getDescriptor().equals("Ljava/lang/Object;")) {
 					SelectiveInstrumentationManager.methodsToInstrument.add(callee);
+					for(String spr : superClass)
+						SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(callee.getName(), spr, callee.getDesc()));
 					break;
 				}
 			}
@@ -52,6 +58,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 	//			if(PartialInstrumentationInferencerCV.classesSeenTillNow.contains(callee.getOwner()))
 	//				System.out.println("Noooooo " + callee);
 				SelectiveInstrumentationManager.methodsToInstrument.add(callee);
+				for(String spr : superClass)
+					SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(callee.getName(), spr, callee.getDesc()));
 			}
 			
 		}
@@ -72,6 +80,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 				System.out.println("[PTI] adding " + this.desc);
 				//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
 				SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
+				for(String spr : superClass)
+					SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
 			//}
 		}
 
@@ -86,6 +96,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 			System.out.println("[PTI] adding " + this.desc);
 			//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
 			SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
+			for(String spr : superClass)
+				SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
 		}
 		super.visitFieldInsn(opcode, owner, name, desc);
 	}

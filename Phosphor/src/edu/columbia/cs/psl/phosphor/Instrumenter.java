@@ -985,11 +985,15 @@ public class Instrumenter {
 		return false;
 	}
 	
-	public static boolean isIgnoredMethod(String owner, String name, String desc) {
+	public static boolean isIgnoredMethodFromOurAnalysis(String owner, String name, String desc) {
 		if(!owner.startsWith("sun/") && !owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
 			System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 			return true;
 		}
+		return false;
+	}
+	
+	public static boolean isIgnoredMethod(String owner, String name, String desc) {
 		if (name.equals("wait") && desc.equals("(J)V"))
 			return true;
 		if (name.equals("wait") && desc.equals("(JI)V"))

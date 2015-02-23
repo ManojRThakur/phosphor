@@ -16,10 +16,7 @@ import edu.columbia.cs.psl.phosphor.org.objectweb.asm.util.Printer;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.util.Textifier;
 import edu.columbia.cs.psl.phosphor.runtime.BoxedPrimitiveStore;
 import edu.columbia.cs.psl.phosphor.runtime.TaintSentinel;
-import edu.columbia.cs.psl.phosphor.struct.TaintedDouble;
-import edu.columbia.cs.psl.phosphor.struct.TaintedFloat;
 import edu.columbia.cs.psl.phosphor.struct.TaintedInt;
-import edu.columbia.cs.psl.phosphor.struct.TaintedLong;
 import edu.columbia.cs.psl.phosphor.struct.TaintedMisc;
 import edu.columbia.cs.psl.phosphor.struct.multid.MultiDTaintedArray;
 
@@ -32,7 +29,7 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 	private String name;
 	private boolean isStatic = true;
 	private Type[] paramTypes;
-
+	
 	public void setArrayAnalyzer(PrimitiveArrayAnalyzer primitiveArrayFixer) {
 		this.arrayAnalyzer = primitiveArrayFixer;
 	}
@@ -1155,10 +1152,14 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 		}
 		//to reduce how much we need to wrap, we will only rename methods that actually have a different descriptor
 		boolean hasNewName = !TaintUtils.remapMethodDesc(desc).equals(desc);
-
-		if (((Instrumenter.isIgnoredClass(owner) || Instrumenter.isIgnoredMethod(owner, name, desc)) && !owner.startsWith("edu/columbia/cs/psl/phosphor/runtime"))
+		
+		if (((Instrumenter.isIgnoredClass(owner) || Instrumenter.isIgnoredMethodFromOurAnalysis(owner, name, desc) || Instrumenter.isIgnoredMethod(owner, name, desc)) && !owner.startsWith("edu/columbia/cs/psl/phosphor/runtime"))
 				|| (opcode == INVOKEINTERFACE && Instrumenter.isAnnotation(owner))) {
+			callsUnInstrumentedMethod = true;
 			Type[] args = Type.getArgumentTypes(desc);
+			
+			System.out.println("Called IN " + className + " " + this.name + " " + analyzer.stack);
+			
 			if (TaintUtils.DEBUG_CALLS) {
 				System.out.println("Calling non-inst: " + owner + "." + name + desc + " stack " + analyzer.stack);
 			}
@@ -1184,8 +1185,9 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 					//Wooahhh let's do nothing here if it's a null on the stack
 					if (isPrimitiveType(args[args.length - i - 1]) && analyzer.stack.get(analyzer.stack.size() - argsSize) == Opcodes.NULL) {
 
-					} else
+					} else {
 						popAt(i + 1);
+					}
 				}
 			}
 //			System.out.println("After modifying, Calling non-inst: " + owner + "." + name + desc + " stack " + analyzer.stack);
@@ -1230,8 +1232,15 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 					super.visitInsn(SWAP);
 				}
 			}
+			
 			if (TaintUtils.DEBUG_CALLS)
 				System.out.println("Post invoke stack post swap pop maybe: " + analyzer.stack);
+			
+			if (dontUnboxTaints && Instrumenter.isIgnoredMethodFromOurAnalysis(owner, name, desc)) {
+				dontUnboxTaints = false;
+				return;
+			}
+			
 			return;
 		}
 		String newDesc = TaintUtils.remapMethodDesc(desc);
@@ -2648,7 +2657,7 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 			super.visitJumpInsn(opcode, label);
 			return;
 		}
-
+		
 		if (boxAtNextJump.size() > 0) {
 			Label origDest = label;
 			Label newDest = new Label();

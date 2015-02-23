@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.columbia.cs.psl.phosphor.org.objectweb.asm.AnnotationVisitor;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.ClassVisitor;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.MethodVisitor;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Opcodes;
@@ -26,6 +27,7 @@ public class PartialInstrumentationInferencerCV extends ClassVisitor{
 	Map<MethodDescriptor, List<MethodDescriptor>> map = new HashMap<MethodDescriptor, List<MethodDescriptor>>();
 	String[] interfaces = null;
 	String superClass;
+	List<String> superClasses = new ArrayList<String>();
 	
 	public PartialInstrumentationInferencerCV()  {
 		super(Opcodes.ASM5);
@@ -41,7 +43,10 @@ public class PartialInstrumentationInferencerCV extends ClassVisitor{
 		this.className = name;
 		this.interfaces = interfaces;
 		this.superClass = superName;
-		
+		for(String inface : interfaces) {
+			superClasses.add(inface);
+		}
+		superClasses.add(this.superClass);
 		if((access & Opcodes.ACC_INTERFACE) != 0 || (access & Opcodes.ACC_ABSTRACT) != 0)
 			isInterface = true;
 		super.visit(version, access, name, signature, superName, interfaces);
@@ -67,7 +72,14 @@ public class PartialInstrumentationInferencerCV extends ClassVisitor{
 		MethodVisitor next = super.visitMethod(access, name, desc, signature, exceptions);
 		map.put(mdesc, new ArrayList<MethodDescriptor>());
 		
-		return new PartialInstrumentationInferencerMV(Opcodes.ASM5, mdesc, next, map);
+		return new PartialInstrumentationInferencerMV(Opcodes.ASM5, mdesc, next, map, this.superClasses);
+	}
+	
+	@Override
+	public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+		if(desc.contains("Override"))
+			System.out.println("OVER");
+		return super.visitAnnotation(desc, visible);
 	}
 	
 	@Override
