@@ -1155,7 +1155,6 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 		
 		if (((Instrumenter.isIgnoredClass(owner) || Instrumenter.isIgnoredMethodFromOurAnalysis(owner, name, desc) || Instrumenter.isIgnoredMethod(owner, name, desc)) && !owner.startsWith("edu/columbia/cs/psl/phosphor/runtime"))
 				|| (opcode == INVOKEINTERFACE && Instrumenter.isAnnotation(owner))) {
-			callsUnInstrumentedMethod = true;
 			Type[] args = Type.getArgumentTypes(desc);
 			
 			System.out.println("Called IN " + className + " " + this.name + " " + analyzer.stack);
