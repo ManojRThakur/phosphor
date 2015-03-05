@@ -1,4 +1,4 @@
-package edu.columbia.cs.psl.phosphor;
+package edu.ucla;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,14 +24,9 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name,
 			String desc, boolean itf) {
-		if(name.equals("getResourceAsStream") && owner.equals("java/lang/Class")) {
-			if (TaintUtils.DEBUG_CALLS)
-				System.out.println("[PTI] adding " + this.desc);
-			//AdditionalMethodsToTaint.methodsWithGetAsSrtream.add(this.desc);
+		if(name.equals("getResourceAsStream") && owner.equals("java/lang/Class")) 
 			SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
-			for(String spr : superClass)
-				SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
-		}
+		
 		MethodDescriptor caller = this.desc;
 		MethodDescriptor callee = new MethodDescriptor(name, owner, desc);
 		
@@ -42,9 +37,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 				&& !SelectiveInstrumentationManager.methodsToInstrument.contains(callee)) {
 			for(Type t : argTypes) {
 				if((t.getSort() == Type.ARRAY && t.getDimensions() > 1) || t.getDescriptor().equals("Ljava/lang/Object;")) {
+					System.out.println("[PTI-visitMethodInsn] Adding additional method");
 					SelectiveInstrumentationManager.methodsToInstrument.add(callee);
-					for(String spr : superClass)
-						SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(callee.getName(), spr, callee.getDesc()));
 					break;
 				}
 			}
@@ -55,13 +49,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 				&& !callee.getOwner().startsWith("javax/")) {
 			if(calleeType.getSort() == Type.ARRAY && calleeType.getDimensions() > 1 
 					&& !SelectiveInstrumentationManager.methodsToInstrument.contains(callee)) {
-				if (TaintUtils.DEBUG_CALLS)
-					System.out.println("[PTI] adding " + callee);
-	//			if(PartialInstrumentationInferencerCV.classesSeenTillNow.contains(callee.getOwner()))
-	//				System.out.println("Noooooo " + callee);
+				System.out.println("[PTI-visitMethodInsn] Adding additional method");
 				SelectiveInstrumentationManager.methodsToInstrument.add(callee);
-				for(String spr : superClass)
-					SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(callee.getName(), spr, callee.getDesc()));
 			}
 			
 		}
@@ -77,15 +66,9 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 		FieldDescriptor fdesc = new FieldDescriptor(name, owner, desc);
 		if((opcode == Opcodes.PUTFIELD || opcode == Opcodes.PUTSTATIC) 
 				&& fieldType.getSort() == Type.ARRAY && fieldType.getDimensions() == 1) {
-			// check if field in current class
-			//if(singledim_array_fields.contains(fdesc) || PartialInstrumentationInferencerCV.singledim_array_fields_non_private.contains(fdesc)) {
-				if (TaintUtils.DEBUG_CALLS)
-					System.out.println("[PTI] adding " + this.desc);
-				//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
+				System.out.println("[PTI-visitFieldInsn] Adding additional method");
 				SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
-				for(String spr : superClass)
-					SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
-			//}
+			
 		}
 
 		// TODO test if the second case works
@@ -96,12 +79,8 @@ public class PartialInstrumentationInferencerMV extends MethodVisitor {
 		 * getstatic
 		 */
 		if(fieldType.getSort() == Type.ARRAY && fieldType.getDimensions() > 1)  {
-			if (TaintUtils.DEBUG_CALLS)
-				System.out.println("[PTI] adding " + this.desc);
-			//AdditionalMethodsToTaint.methodsAccessingMultiDimensionalArrays.add(this.desc);
+			System.out.println("[PTI-visitFieldInsn] Adding additional method");
 			SelectiveInstrumentationManager.methodsToInstrument.add(this.desc);
-			for(String spr : superClass)
-				SelectiveInstrumentationManager.methodsToInstrument.add(new MethodDescriptor(this.desc.getName(), spr, this.desc.getDesc()));
 		}
 		super.visitFieldInsn(opcode, owner, name, desc);
 	}

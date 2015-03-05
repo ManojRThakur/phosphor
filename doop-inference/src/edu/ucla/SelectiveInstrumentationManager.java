@@ -1,4 +1,4 @@
-package edu.columbia.cs.psl.phosphor;
+package edu.ucla;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,7 +23,7 @@ public class SelectiveInstrumentationManager {
 			String line = null;
 			while ((line = br.readLine()) != null)
 				if(line.length() > 0) {
-					methodsToInstrument.add(TaintUtils.getMethodDesc(line));
+					methodsToInstrument.add(Utils.getMethodDesc(line));
 				}
 			
 		} catch(IOException ex) {
@@ -40,13 +40,5 @@ public class SelectiveInstrumentationManager {
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	public static void main(String[] args) {
-		String s = "<java.awt.geom.PathIterator: int currentSegment(float[])>";
-		MethodDescriptor desc = TaintUtils.getMethodDesc(s);
-		System.out.println(s);
-		System.out.println(TaintUtils.getMethodDesc(desc));
-		
 	}
 }

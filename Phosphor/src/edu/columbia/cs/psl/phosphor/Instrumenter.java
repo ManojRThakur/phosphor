@@ -56,6 +56,7 @@ public class Instrumenter {
 
 	static int nChanges = 0;
 	static boolean analysisInvalidated = false;
+	public static boolean isRuntime = true;
 	
 	static void propogateUp(String owner, String name, String desc, MethodInformation toPropogate) {
 		propogateUp(owner, name, desc, toPropogate, new HashSet<String>());
@@ -373,6 +374,7 @@ public class Instrumenter {
 			cr = new ClassReader(is);
 			
 			try{
+				cr.accept(new ClassHierarchyCreator(), ClassReader.EXPAND_FRAMES);
 				cr.accept(new PartialInstrumentationInferencerCV(), ClassReader.EXPAND_FRAMES);
 			}
 			catch(ClassFormatError ex){
@@ -987,7 +989,8 @@ public class Instrumenter {
 	
 	public static boolean isIgnoredMethodFromOurAnalysis(String owner, String name, String desc) {
 		if(!owner.startsWith("sun/") && !owner.startsWith("java/") && !owner.startsWith("edu/columbia/") && !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
-			System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
+			if (TaintUtils.DEBUG_CALLS)
+				System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 			return true;
 		}
 		return false;

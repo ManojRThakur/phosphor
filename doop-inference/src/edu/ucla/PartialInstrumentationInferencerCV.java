@@ -1,10 +1,9 @@
-package edu.columbia.cs.psl.phosphor;
+package edu.ucla;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.ClassVisitor;
 import edu.columbia.cs.psl.phosphor.org.objectweb.asm.MethodVisitor;
@@ -18,7 +17,6 @@ import edu.columbia.cs.psl.phosphor.org.objectweb.asm.Opcodes;
  */
 public class PartialInstrumentationInferencerCV extends ClassVisitor{
 	public static Map<String, List<String>> classToSuperClass = new HashMap<String, List<String>>();
-	private static String superClassesToConsider = "java/io/.+|java/nio/.+|java/util/.+";
 	
 	List<MethodDescriptor> methodCallingAsStream = new ArrayList<MethodDescriptor>();
 	String className;
@@ -58,35 +56,20 @@ public class PartialInstrumentationInferencerCV extends ClassVisitor{
 			
 		MethodDescriptor mdesc = new MethodDescriptor(name, className, desc);
 		
-		if(this.className.contains("NioEndpoint") && superClass.equals("java/util/concurrent/ConcurrentLinkedQueue") && name.equals("offer"))
-			SelectiveInstrumentationManager.methodsToInstrument.add(mdesc);
-		if(this.className.equals("org/apache/catalina/startup/Catalina"))
-			SelectiveInstrumentationManager.methodsToInstrument.add(mdesc);
-		
-		
-		if(!this.className.startsWith("java/") && !this.className.startsWith("sun/") && !this.className.startsWith("javax/")) {
-			Set<String> supers = ClassHierarchyCreator.allSupers(this.className);
-			
-			for(String inter : supers) {
-				MethodDescriptor supr = new MethodDescriptor(name, inter, desc);
-				if(SelectiveInstrumentationManager.methodsToInstrument.contains(supr)) {
-					SelectiveInstrumentationManager.methodsToInstrument.add(mdesc);
-					break;
-				}	
-			}
-		}
-		
 		for(String inter : interfaces) {
 			MethodDescriptor supr = new MethodDescriptor(name, inter, desc);
 			if(SelectiveInstrumentationManager.methodsToInstrument.contains(supr)) {
+				System.out.println("[PTI-visitMethod] Adding additional method");
 				SelectiveInstrumentationManager.methodsToInstrument.add(mdesc);
 				break;
 			}	
 		}
 		MethodDescriptor supr = new MethodDescriptor(name, superClass, desc);
 		
-		if(SelectiveInstrumentationManager.methodsToInstrument.contains(supr))
+		if(SelectiveInstrumentationManager.methodsToInstrument.contains(supr)) {
+			System.out.println("[PTI-visitMethod] Adding additional method");
 			SelectiveInstrumentationManager.methodsToInstrument.add(mdesc);
+		}
 		
 		MethodVisitor next = super.visitMethod(access, name, desc, signature, exceptions);
 		map.put(mdesc, new ArrayList<MethodDescriptor>());

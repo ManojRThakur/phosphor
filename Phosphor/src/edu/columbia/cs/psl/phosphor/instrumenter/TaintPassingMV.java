@@ -1157,7 +1157,8 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 				|| (opcode == INVOKEINTERFACE && Instrumenter.isAnnotation(owner))) {
 			Type[] args = Type.getArgumentTypes(desc);
 			
-			System.out.println("Called IN " + className + " " + this.name + " " + analyzer.stack);
+			if (TaintUtils.DEBUG_CALLS)
+				System.out.println("Called IN " + className + " " + this.name + " " + analyzer.stack);
 			
 			if (TaintUtils.DEBUG_CALLS) {
 				System.out.println("Calling non-inst: " + owner + "." + name + desc + " stack " + analyzer.stack);

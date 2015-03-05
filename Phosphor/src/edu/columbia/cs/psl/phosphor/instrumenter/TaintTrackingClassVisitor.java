@@ -139,7 +139,8 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 				generateHashCode = false;
 			if(name.equals("equals") && desc.equals("(Ljava/lang/Object;)Z"))
 				generateEquals = false;
-			System.out.println("Skipping instrumentation for  class: " + className + " method: " + name + " desc: " + desc);
+			if (TaintUtils.DEBUG_CALLS)
+				System.out.println("Skipping instrumentation for  class: " + className + " method: " + name + " desc: " + desc);
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 		if (TaintUtils.DEBUG_CALLS || TaintUtils.DEBUG_FIELDS || TaintUtils.DEBUG_FRAMES || TaintUtils.DEBUG_LOCAL)
