@@ -14,6 +14,8 @@ $DACAPO=$1
 
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+cp $DACAPO $ROOT
+
 PHOSPHOR_HOME=$ROOT
 PETABLOX_HOME=$( cd $ROOT && cd .. && pwd )/petablox
 DOOP_HOME=$PETABLOX_HOME/doop-r160113-bin
@@ -22,7 +24,7 @@ JRE_INST_HOME=$PHOSPHOR_HOME/jre-inst
 # Step 1: Setup dacapo jars in phosphor folder && doop folder
 cd $ROOT
 $scratch=$(mktemp -d XXXXXXXX)
-cp $DACAPO $scratch
+mv dacapo-2009.tar.gz $scratch
 cd $scratch
 
 tar -xzf dacapo-2009.tar.gz
