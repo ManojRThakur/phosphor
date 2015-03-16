@@ -1,0 +1,4 @@
+<org.apache.lucene.analysis.CharArraySet: boolean add(java.lang.CharSequence)>
+<org.apache.lucene.analysis.CharArraySet: boolean add(java.lang.String)>
+<org.apache.lucene.analysis.CharArraySet: boolean add(char[])>
+<org.apache.lucene.analysis.CharArraySet: boolean add(java.lang.Object)>
