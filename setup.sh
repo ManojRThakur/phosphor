@@ -2,10 +2,12 @@
 
 if [ -z "$JAVA_HOME" ]; then
     echo "ERR: JAVA_HOME must be set"
+    exit 1;
 fi
 
 if [ -z "$1" ]; then
     echo "$0: please provide dacapo-2009.tar.gz location"
+    exit 1;
 fi
 
 $DACAPO=$1
