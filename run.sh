@@ -16,8 +16,9 @@ JRE_INST_HOME=$PHOSPHOR_HOME/jre-inst
 
 # Step 1: Generate methods_inst using doop and cp to $PHOSPHOR_HOME
 cd $PETABLOX_HOME
+
 vagrant up
-vagrant ssh -c 'cd /vagrant/doop-r160113-bin && ./exec-dacapo.sh $bm > logs/$bm.log'
+vagrant ssh -c "cd /vagrant/doop-r160113-bin && mkdir -p logs && ./exec-dacapo.sh $bm > logs/$bm.log"
 cp $DOOP_HOME/ucla-pls/methods_inst $PHOSPHOR_HOME/methods
 
 # Step 2: Run phosphor_pi.jar
