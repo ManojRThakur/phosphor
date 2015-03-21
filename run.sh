@@ -28,4 +28,5 @@ cd $PHOSPHOR_HOME
 
 cd $PHOSPHOR_HOME/$bm-inst
 # ./run-instrumented.sh $
+chmod +x $JRE_INST_HOME/bin/java
 $JRE_INST_HOME/bin/java -Xdebug -Xbootclasspath/a:$PHOSPHOR_HOME/phosphor_pi.jar -javaagent:$PHOSPHOR_HOME/phosphor_pi.jar Harness $bm
