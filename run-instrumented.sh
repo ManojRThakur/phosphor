@@ -12,7 +12,7 @@ cd $DIR
 if [ -z $BM ]; then # run all instrumented benchmarks
     for instrumented in *-inst/; do
         BM=$( echo $(basename $instrumented) | sed "s/-inst$//" )
-        echo $BM; exit 1
+
         if [ "$BM" != "jre" ] && [ "$BM" != "partial" ]; then
             echo "Running '$BM'..."
             cd $instrumented
