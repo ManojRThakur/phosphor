@@ -1,7 +1,8 @@
 #!/bin/bash
 
-STEP=0
-if [ -n $1 ]; then
+if [ -z ${1+x} ]; then
+    STEP=0
+else
     STEP=$1
 fi
 
@@ -47,7 +48,7 @@ for bm in dacapo-2009/*; do
                     rm -r $PHOSPHOR_HOME/$bm > /dev/null
                 fi
             cd $DOOP_HOME/dacapo-2009/$bm; jar xf $bm.jar
-            cp $DOOP_HOME/dacapo-2009/$bm $PHOSPHOR_HOME
+            cp -R $DOOP_HOME/dacapo-2009/$bm $PHOSPHOR_HOME
         fi
 done
 
@@ -61,10 +62,6 @@ cd $PETABLOX_HOME/provision
 cp config.json.default config.json
 
 cd $DOOP_HOME/externals
-if (( "$STEP" >= 2 )); then
-    printf "Enter your BitBucket username:"; read username
-    printf "Enter your BitBucket password:"; read pw
-fi
 
 curl -L -u $username:$pw -O https://bitbucket.org/mayurnaik/petablox/downloads/jre-6u45-linux-x64.bin -O https://bitbucket.org/mayurnaik/petablox/downloads/jre-1_5_0_22-linux-amd64.bin  -O https://bitbucket.org/mayurnaik/petablox/downloads/j2re-1_4_2_19-linux-i586.bin -O https://bitbucket.org/mayurnaik/petablox/downloads/j2re-1_3_1_20-linux-i586.bin -O https://bitbucket.org/mayurnaik/petablox/downloads/dacapo-2006-10-MR2-xdeps.zip -O https://bitbucket.org/mayurnaik/petablox/downloads/logicblox-3.10.21.tar.gz
 cd $PETABLOX_HOME
