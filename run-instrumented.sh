@@ -11,9 +11,10 @@ cd $DIR
 
 if [ -z $BM ]; then # run all instrumented benchmarks
     for instrumented in *-inst/; do
-        BM=$(basename $instrumented) | sed "s/-inst$//"
+        BM=$( echo $(basename $instrumented) | sed "s/-inst$//" )
+        echo $BM; exit 1
         if [ "$BM" != "jre" ] && [ "$BM" != "partial" ]; then
-            echo "Running $BM..."
+            echo "Running '$BM'..."
             cd $instrumented
             $JRE_INST_HOME/bin/java -Xdebug -Xbootclasspath/a:../phosphor_pi.jar -javaagent:../phosphor_pi.jar $MAIN_CLASS $BM
         fi
