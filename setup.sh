@@ -21,8 +21,8 @@ JRE_INST_HOME=$PHOSPHOR_HOME/jre-inst
 if (( "$STEP" <= 1)); then
 # Step 1: Download 2009 Dacapo jars
 echo "Downloading DaCapo jars from BitBucket..."
-printf "Enter your BitBucket username:"; read username
-printf "Enter your BitBucket password:"; read pw
+echo -n "Enter your BitBucket username: "; read username
+echo -n "Enter your BitBucket password: "; read -s pw
 
 cd $ROOT
 curl -L -u $username:$pw -O https://bitbucket.org/mayurnaik/petablox/downloads/dacapo-2009.tar.gz
@@ -74,6 +74,7 @@ if (( "$STEP" <= 4 )); then
 # Step 4: Instrument JVM
 cd $PHOSPHOR_HOME
 java -jar phosphor.jar $JAVA_HOME/jre $JRE_INST_HOME
+chmod +x $JRE_INST_HOME/bin/java
 fi
 
 if (( "$STEP" <= 5 )); then

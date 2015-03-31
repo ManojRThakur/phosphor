@@ -25,8 +25,4 @@ cp $DOOP_HOME/ucla-pls/methods_inst $PHOSPHOR_HOME/methods
 rm -r $PHOSPHOR_HOME/$bm-inst > /dev/null
 cd $PHOSPHOR_HOME
 ./instrument.sh $bm
-
-cd $PHOSPHOR_HOME/$bm-inst
-# ./run-instrumented.sh $
-chmod +x $JRE_INST_HOME/bin/java
-$JRE_INST_HOME/bin/java -Xdebug -Xbootclasspath/a:$PHOSPHOR_HOME/phosphor_pi.jar -javaagent:$PHOSPHOR_HOME/phosphor_pi.jar Harness $bm
+./run-instrumented.sh $JRE_INST_HOME Harness $bm
